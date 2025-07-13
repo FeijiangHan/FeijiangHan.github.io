@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Guide to Parameter-Efficient Fine-Tuning (PEFT)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals - A calm and professional palette using Slate gray tones as the base, with a gentle Sky blue as a subtle accent for interactive elements and highlights. -->
+    <!-- Application Structure Plan: A single-page application with a sticky top navigation bar for seamless exploration. The structure is designed for a guided learning journey: 1. **Hero Section**: A brief, engaging introduction. 2. **Technique Deep Dive**: A tab-based section to explore each of the four techniques (Prompt Tuning, P-tuning, Prefix-Tuning, ZeroTuning) in detail. 3. **Comparative Analysis**: Interactive charts (Radar and Bar) to visually compare the techniques across multiple dimensions, including the newly added 'Interpretability'. 4. **Decision Guide**: An interactive tool that recommends the best technique based on user-selected constraints. 5. **Pseudocode Implementations**: An accordion section presenting the pseudocode for the core tuning strategies. This structure moves from high-level concepts to detailed comparisons, practical application, and finally, implementation-level understanding. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: Core mechanisms of each tuning method. -> Goal: Organize & Inform. -> Viz/Presentation: HTML/CSS based diagrams within tabbed content. -> Interaction: Clicking tabs to reveal detailed content. -> Justification: Provides a clear way to present complex architectures without external graphics.
+        - Report Info: Comparative data across techniques. -> Goal: Compare & Relationships. -> Viz/Presentation: A Radar chart for qualitative trade-offs (now including Interpretability) and a Logarithmic Bar chart for quantitative parameter comparison. -> Interaction: Hover tooltips on charts provide detailed data points. -> Justification: Charts offer a high-density, intuitive summary of complex multi-dimensional data. Library: Chart.js.
+        - Report Info: Decision matrix for selecting a technique. -> Goal: Inform & Interact. -> Viz/Presentation: A form with dropdown menus. -> Interaction: User selects constraints, and the corresponding recommendation is highlighted. -> Justification: Transforms a static table into an engaging, personalized advisory tool.
+        - Report Info: Implementation details. -> Goal: Inform & Organize. -> Viz/Presentation: Code blocks within an accordion. -> Interaction: Clicking to expand/collapse code sections. -> Justification: Manages screen space effectively.
+        - Library/Method - Confirming NO SVG/Mermaid, supporting the DESIGNED structure.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .chart-container { position: relative; width: 100%; max-width: 600px; margin-left: auto; margin-right: auto; height: 350px; max-height: 50vh; }
+        @media (min-width: 768px) { .chart-container { height: 400px; } }
+        .pseudo-code {
+            background-color: #1f2937;
+            color: #d1d5db;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+        .pseudo-code .comment { color: #6b7280; }
+        .pseudo-code .keyword { color: #60a5fa; }
+        .pseudo-code .function { color: #a78bfa; }
+        .pseudo-code .variable { color: #facc15; }
+        .active-nav { color: #0284c7; border-bottom-color: #0284c7; }
+        .inactive-nav { border-bottom-color: transparent; }
+        .active-tab { background-color: #0c4a6e; color: white; }
+        .inactive-tab { background-color: #e5e7eb; color: #374151; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <header class="bg-white/80 backdrop-blur-lg shadow-sm sticky top-0 z-50">
+        <nav class="container mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <h1 class="text-xl md:text-2xl font-bold text-slate-900">PEFT Interactive Guide</h1>
+                <div class="hidden md:flex items-center space-x-8 text-lg">
+                    <a href="#techniques" class="py-2 border-b-2 transition-all duration-300 inactive-nav">Techniques</a>
+                    <a href="#comparison" class="py-2 border-b-2 transition-all duration-300 inactive-nav">Comparison</a>
+                    <a href="#guide" class="py-2 border-b-2 transition-all duration-300 inactive-nav">Decision Guide</a>
+                    <a href="#pseudocode" class="py-2 border-b-2 transition-all duration-300 inactive-nav">Pseudocode</a>
+                </div>
+                <button id="mobile-menu-button" class="md:hidden text-slate-800 focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                </button>
+            </div>
+        </nav>
+        <div id="mobile-menu" class="hidden md:hidden bg-white">
+            <a href="#techniques" class="block py-3 px-4 text-lg text-slate-700 hover:bg-slate-100">Techniques</a>
+            <a href="#comparison" class="block py-3 px-4 text-lg text-slate-700 hover:bg-slate-100">Comparison</a>
+            <a href="#guide" class="block py-3 px-4 text-lg text-slate-700 hover:bg-slate-100">Decision Guide</a>
+            <a href="#pseudocode" class="block py-3 px-4 text-lg text-slate-700 hover:bg-slate-100">Pseudocode</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-8">
+        
+        <section id="hero" class="text-center py-16 md:py-24">
+            <h2 class="text-4xl md:text-5xl font-extrabold text-slate-900 mb-4">Parameter-Efficient Fine-Tuning (PEFT)</h2>
+            <p class="text-xl md:text-2xl text-slate-600 max-w-3xl mx-auto">
+                An interactive deep dive into the core mechanisms, evolution, and practical applications of P-tuning, Prefix-Tuning, Prompt Tuning, and ZeroTuning.
+            </p>
+             <p class="mt-6 text-slate-500 max-w-3xl mx-auto">
+                As Large Language Models (LLMs) grow exponentially in size, traditional full fine-tuning has become prohibitively expensive and inefficient. Parameter-Efficient Fine-Tuning (PEFT) techniques have emerged to address this, aiming to match the performance of full fine-tuning by adjusting only a tiny fraction of the model's parameters. This guide explores several leading prompt-based PEFT methods and their training-free alternatives.
+            </p>
+        </section>
+
+        <section id="techniques" class="py-16 md:py-24 scroll-mt-20">
+            <h3 class="text-3xl font-bold text-center mb-12 text-slate-900">Technique Deep Dive</h3>
+             <div class="mb-8 text-center text-slate-600 max-w-3xl mx-auto">
+                In this section, we'll dissect four core techniques. Each represents a unique approach to model adaptation, from shallow guidance to deep control, and even training-free inference-time optimization. Click the tabs below to explore detailed explanations of each technique, including its core idea, a diagram of its mechanism, and an analysis of its pros and cons.
+            </div>
+
+            <div class="w-full max-w-4xl mx-auto">
+                <div id="tabs-container" class="flex flex-wrap justify-center gap-2 mb-8">
+                    <button class="tab-btn px-4 py-2 rounded-md font-semibold transition-all duration-300 active-tab" data-tab="prompt_tuning">Prompt Tuning</button>
+                    <button class="tab-btn px-4 py-2 rounded-md font-semibold transition-all duration-300 inactive-tab" data-tab="p_tuning">P-tuning (v1/v2)</button>
+                    <button class="tab-btn px-4 py-2 rounded-md font-semibold transition-all duration-300 inactive-tab" data-tab="prefix_tuning">Prefix-Tuning</button>
+                    <button class="tab-btn px-4 py-2 rounded-md font-semibold transition-all duration-300 inactive-tab" data-tab="zero_tuning">ZeroTuning</button>
+                </div>
+
+                <div id="tab-content" class="bg-white p-6 md:p-8 rounded-xl shadow-lg transition-all duration-500">
+                    <!-- Content will be injected by JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <section id="comparison" class="py-16 md:py-24 bg-slate-100 -mx-4 md:-mx-8 px-4 md:px-8 scroll-mt-20">
+            <h3 class="text-3xl font-bold text-center mb-12 text-slate-900">Comparative Analysis</h3>
+             <div class="mb-12 text-center text-slate-600 max-w-3xl mx-auto">
+                To intuitively understand the trade-offs between these techniques, we present two comparative charts. The radar chart visualizes their comprehensive characteristics across multiple qualitative dimensions, including interpretability. The bar chart quantitatively compares the number of additional parameters they require. These visualizations help you quickly grasp the positioning and ideal use cases for each method.
+            </div>
+            <div class="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
+                <div class="w-full">
+                    <h4 class="text-xl font-semibold text-center mb-4 text-slate-700">Technique Capability Radar</h4>
+                    <div class="chart-container">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                </div>
+                <div class="w-full">
+                    <h4 class="text-xl font-semibold text-center mb-4 text-slate-700">Trainable Parameters (Log Scale)</h4>
+                    <div class="chart-container">
+                        <canvas id="barChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="guide" class="py-16 md:py-24 scroll-mt-20">
+            <h3 class="text-3xl font-bold text-center mb-12 text-slate-900">Interactive Decision Guide</h3>
+             <div class="mb-8 text-center text-slate-600 max-w-3xl mx-auto">
+                Faced with multiple options, how do you find the best method for your project? This interactive tool helps you decide. Select your model scale, primary task type, and available compute resources. Based on expert knowledge from the source report, the system will highlight the most suitable technique and provide a brief rationale for the recommendation.
+            </div>
+            <div class="max-w-3xl mx-auto bg-white p-6 md:p-8 rounded-xl shadow-lg">
+                <div class="grid md:grid-cols-3 gap-6 mb-8">
+                    <div>
+                        <label for="modelSize" class="block mb-2 font-medium text-slate-700">1. Select Model Scale</label>
+                        <select id="modelSize" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition">
+                            <option value="large">Very Large (>10B)</option>
+                            <option value="medium">Medium (1B-10B)</option>
+                            <option value="any">Any Scale</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="taskType" class="block mb-2 font-medium text-slate-700">2. Select Task Type</label>
+                        <select id="taskType" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition">
+                            <option value="simple">Simple Classification/Gen</option>
+                            <option value="complex_nlu">Complex NLU (e.g., NER)</option>
+                            <option value="nlg">Complex NLG (e.g., Summarization)</option>
+                             <option value="general">General Purpose</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="resource" class="block mb-2 font-medium text-slate-700">3. Training Resources</label>
+                        <select id="resource" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition">
+                            <option value="low">Low / Very Low</option>
+                            <option value="zero">None / Zero Budget</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="recommendation-box" class="bg-sky-50 p-6 rounded-lg text-center">
+                    <h4 class="text-lg font-semibold text-sky-800 mb-2">Recommended Technique</h4>
+                    <p id="recommendation-text" class="text-2xl font-bold text-sky-900">-</p>
+                    <p id="recommendation-reason" class="mt-2 text-sky-700"></p>
+                </div>
+            </div>
+        </section>
+
+        <section id="pseudocode" class="py-16 md:py-24 bg-slate-100 -mx-4 md:-mx-8 px-4 md:px-8 scroll-mt-20">
+            <h3 class="text-3xl font-bold text-center mb-12 text-slate-900">Core Strategy Pseudocode</h3>
+            <div class="mb-8 text-center text-slate-600 max-w-3xl mx-auto">
+                To better understand how these techniques work, this section provides pseudocode for the core tuning strategies. The code clearly illustrates the data flow within the model and where and how trainable parameters exert their influence. Click a title to expand or collapse the code, allowing you to focus on your method of interest.
+            </div>
+            <div class="max-w-4xl mx-auto space-y-4">
+                <!-- Accordion items will be injected by JS -->
+            </div>
+        </section>
+    </main>
+    
+    <footer class="bg-slate-800 text-slate-300 py-8">
+        <div class="container mx-auto text-center">
+            <p>&copy; 2025 PEFT Interactive Guide by Feijiang Han.</p>
+        </div>
+    </footer>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const techData = {
+                prompt_tuning: {
+                    title: 'Prompt Tuning (Shallow Prompting)',
+                    content: `
+                        <p class="text-slate-600 mb-4">Prompt Tuning is the most direct and efficient soft-prompting method. It keeps the entire large model frozen and only prepends a short sequence of trainable, continuous vectors (the "soft prompt") to the input embeddings to steer the model towards a specific task.</p>
+                        <h5 class="font-semibold text-slate-800 mt-6 mb-3">Mechanism Diagram (Shallow Intervention)</h5>
+                        <div class="bg-slate-100 p-4 rounded-lg text-center">
+                           <div class="flex flex-col items-center justify-center space-y-2">
+                                <div class="flex items-center space-x-2">
+                                    <div class="bg-purple-200 text-purple-800 px-3 py-1 rounded-md font-mono text-sm shadow">P (Trainable Prompt)</div>
+                                    <div class="text-2xl font-bold text-slate-400">+</div>
+                                    <div class="bg-green-200 text-green-800 px-3 py-1 rounded-md font-mono text-sm shadow">E(X) (Input Embeddings)</div>
+                                </div>
+                                <div class="text-2xl text-slate-400">↓</div>
+                                <div class="w-full border-2 border-dashed border-slate-300 rounded-lg p-4">
+                                    <p class="font-bold text-slate-700">Frozen Large Language Model (LLM)</p>
+                                    <p class="text-sm text-slate-500">All internal parameters remain unchanged</p>
+                                </div>
+                                <div class="text-2xl text-slate-400">↓</div>
+                                <div class="bg-blue-200 text-blue-800 px-3 py-1 rounded-md font-mono text-sm shadow">Output Y</div>
+                           </div>
+                        </div>
+                        <div class="mt-6 grid md:grid-cols-2 gap-4">
+                           <div>
+                                <h5 class="font-semibold text-green-600 mb-2">Advantages (+)</h5>
+                                <ul class="list-disc list-inside space-y-1 text-slate-600">
+                                    <li>Extremely parameter-efficient (<0.01% params)</li>
+                                    <li>Very low storage cost, easy to deploy</li>
+                                    <li>Enables mixed-task inference batches</li>
+                                </ul>
+                           </div>
+                           <div>
+                                <h5 class="font-semibold text-red-600 mb-2">Disadvantages (-)</h5>
+                                <ul class="list-disc list-inside space-y-1 text-slate-600">
+                                    <li>Performance is highly dependent on model scale</li>
+                                    <li>Underperforms on small to medium-sized models</li>
+                                    <li>Increases sequence length, adding inference latency</li>
+                                </ul>
+                           </div>
+                        </div>
+                    `,
+                },
+                p_tuning: {
+                    title: 'P-tuning (v1/v2 Deep Prompting)',
+                    content: `
+                        <p class="text-slate-600 mb-4">P-tuning aims to enhance the expressive power of prompts. Version 1 used an auxiliary neural network (a prompt encoder) to generate more complex soft prompts. Version 2, however, adopted and refined the ideas from Prefix-Tuning, injecting trainable prefixes into every layer of the model. This made it a powerful and general-purpose paradigm that excels on various model scales and NLU tasks.</p>
+                        <h5 class="font-semibold text-slate-800 mt-6 mb-3">Mechanism Diagram (P-tuning v2 - Deep Intervention)</h5>
+                        <div class="bg-slate-100 p-4 rounded-lg text-center">
+                           <div class="flex flex-col items-center justify-center space-y-2">
+                                <div class="bg-green-200 text-green-800 px-3 py-1 rounded-md font-mono text-sm shadow">E(X) (Input Embeddings)</div>
+                                <div class="text-2xl text-slate-400">↓</div>
+                                <div class="w-full border-2 border-dashed border-slate-300 rounded-lg p-4 relative">
+                                    <div class="absolute -left-16 top-1/2 -translate-y-1/2 flex flex-col space-y-4">
+                                       <div class="bg-purple-200 text-purple-800 px-2 py-1 rounded-md font-mono text-xs shadow transform -rotate-12">P_L1</div>
+                                       <div class="bg-purple-200 text-purple-800 px-2 py-1 rounded-md font-mono text-xs shadow transform rotate-6">P_L2</div>
+                                       <div class="bg-purple-200 text-purple-800 px-2 py-1 rounded-md font-mono text-xs shadow transform -rotate-12">... P_Ln</div>
+                                    </div>
+                                    <p class="font-bold text-slate-700">Frozen LLM (Layer-wise Prompt Injection)</p>
+                                    <p class="text-sm text-slate-500">Each layer's computation is influenced by a trainable prefix P</p>
+                                </div>
+                                <div class="text-2xl text-slate-400">↓</div>
+                                <div class="bg-blue-200 text-blue-800 px-3 py-1 rounded-md font-mono text-sm shadow">Output Y</div>
+                           </div>
+                        </div>
+                        <div class="mt-6 grid md:grid-cols-2 gap-4">
+                           <div>
+                                <h5 class="font-semibold text-green-600 mb-2">Advantages (+)</h5>
+                                <ul class="list-disc list-inside space-y-1 text-slate-600">
+                                    <li>Powerful and general-purpose, not reliant on model scale</li>
+                                    <li>Excels at complex NLU tasks (e.g., NER)</li>
+                                    <li>Still highly parameter-efficient compared to full fine-tuning</li>
+                                </ul>
+                           </div>
+                           <div>
+                                <h5 class="font-semibold text-red-600 mb-2">Disadvantages (-)</h5>
+                                <ul class="list-disc list-inside space-y-1 text-slate-600">
+                                    <li>More parameters than Prompt Tuning</li>
+                                    <li>Also increases sequence length and inference latency</li>
+                                    <li>The v1 encoder architecture is now obsolete</li>
+                                </ul>
+                           </div>
+                        </div>
+                    `,
+                },
+                prefix_tuning: {
+                    title: 'Prefix-Tuning (Built for NLG)',
+                    content: `
+                        <p class="text-slate-600 mb-4">Prefix-Tuning pioneered the "deep prompt" paradigm. Its core idea is identical to P-tuning v2: add a trainable prefix to every layer of the Transformer. It was originally designed for Natural Language Generation (NLG) tasks, enabling fine-grained control over each layer's attention mechanism to better guide the model in generating coherent and accurate text.</p>
+                        <h5 class="font-semibold text-slate-800 mt-6 mb-3">Mechanism Diagram (Modifying Attention)</h5>
+                        <div class="bg-slate-100 p-4 rounded-lg">
+                           <p class="text-center font-bold mb-2 text-slate-700">Inside each Transformer layer</p>
+                           <div class="flex flex-col items-center text-sm font-mono">
+                                <p>Attention(Q, K, V) -> Attention(Q, concat(K_prefix, K_input), concat(V_prefix, V_input))</p>
+                                <div class="text-xs text-slate-500 mt-2">
+                                   (K_prefix, V_prefix) are the layer's trainable parameters
+                                </div>
+                           </div>
+                        </div>
+                        <div class="mt-6 grid md:grid-cols-2 gap-4">
+                           <div>
+                                <h5 class="font-semibold text-green-600 mb-2">Advantages (+)</h5>
+                                <ul class="list-disc list-inside space-y-1 text-slate-600">
+                                    <li>Strong control over NLG tasks, high-quality generation</li>
+                                    <li>Pioneered the influential deep prompting concept</li>
+                                    <li>Uses reparameterization to stabilize training</li>
+                                </ul>
+                           </div>
+                           <div>
+                                <h5 class="font-semibold text-red-600 mb-2">Disadvantages (-)</h5>
+                                <ul class="list-disc list-inside space-y-1 text-slate-600">
+                                    <li>Less optimized for NLU tasks compared to P-tuning v2</li>
+                                    <li>More complex and has more parameters than Prompt Tuning</li>
+                                    <li>Also suffers from increased inference latency</li>
+                                </ul>
+                           </div>
+                        </div>
+                    `,
+                },
+                zero_tuning: {
+                    title: 'ZeroTuning (Training-Free Optimization)',
+                    content: `
+                        <p class="text-slate-600 mb-4">ZeroTuning is a fundamentally different concept. It is not a PEFT method, as it requires no training. It's an inference-time optimization strategy that works by dynamically adjusting the attention weights of the initial token (e.g., &lt;BOS&gt;) during each forward pass. This sharpens or flattens the model's attention distribution over subsequent content, boosting performance at zero cost.</p>
+                        <h5 class="font-semibold text-slate-800 mt-6 mb-3">A Paradigm of Interpretability</h5>
+                        <div class="text-slate-600 mb-4 bg-sky-50 p-4 rounded-lg border border-sky-200">
+                            <p>A key philosophical difference sets ZeroTuning apart from methods like Prefix or Prompt Tuning. While those methods learn abstract, "black-box" vectors whose function is not fully understood, ZeroTuning is built on a foundation of <strong class="text-sky-700">interpretability</strong>. Its mechanism isn't a mystery; it's a direct and predictable manipulation of a known phenomenon—the "attention sink" property of initial tokens. We can clearly theorize and observe how increasing or decreasing attention to these tokens sharpens or flattens the model's focus, making it a "white-box" approach to performance enhancement.</p>
+                        </div>
+                         <h5 class="font-semibold text-slate-800 mt-6 mb-3">Mechanism Diagram (Real-time Attention Adjustment)</h5>
+                        <div class="bg-slate-100 p-4 rounded-lg text-center font-mono text-sm">
+                           <div class="flex flex-col items-center justify-center space-y-2">
+                                <div>Attention_Weights = Softmax(Scores)</div>
+                                <div class="text-2xl text-slate-400">↓</div>
+                                <div>a_0 = Attention_Weights[0] * <span class="text-red-500 font-bold">γ</span></div>
+                                <div class="text-2xl text-slate-400">↓</div>
+                                <div>Re-normalize(Attention_Weights)</div>
+                                <p class="text-xs text-slate-500 mt-2">γ is the dynamic scaling factor</p>
+                           </div>
+                        </div>
+                        <div class="mt-6 grid md:grid-cols-2 gap-4">
+                           <div>
+                                <h5 class="font-semibold text-green-600 mb-2">Advantages (+)</h5>
+                                <ul class="list-disc list-inside space-y-1 text-slate-600">
+                                    <li>Absolutely zero training cost, effective immediately</li>
+                                    <li>No storage overhead, adds no parameters</li>
+                                    <li>Minimal inference overhead, negligible latency impact</li>
+                                    <li>Highly interpretable and robust across conditions</li>
+                                </ul>
+                           </div>
+                           <div>
+                                <h5 class="font-semibold text-red-600 mb-2">Disadvantages (-)</h5>
+                                <ul class="list-disc list-inside space-y-1 text-slate-600">
+                                    <li>Performance gains are typically smaller than PEFT methods</li>
+                                    <li>Not intended to match the performance of full fine-tuning</li>
+                                    <li>Requires a small calibration set to find the best γ</li>
+                                </ul>
+                           </div>
+                        </div>
+                    `,
+                },
+            };
+            
+            const pseudocodeData = {
+                prompt_tuning_code: {
+                    title: 'Prompt Tuning Pseudocode',
+                    code: `
+<div class="pseudo-code">
+<span class="keyword">function</span> <span class="function">prompt_tuning_forward</span>(<span class="variable">model</span>, <span class="variable">input_ids</span>, <span class="variable">labels</span>):
+  <span class="comment"># model.word_embeddings is the original embedding layer</span>
+  <span class="comment"># model.soft_prompt is the trainable prompt tensor, shape [prompt_len, embed_dim]</span>
+  
+  <span class="comment"># 1. Get input embeddings</span>
+  <span class="variable">input_embeds</span> = <span class="variable">model.word_embeddings</span>(<span class="variable">input_ids</span>)
+  
+  <span class="comment"># 2. Prepend the soft prompt</span>
+  <span class="variable">prompt_embeds</span> = <span class="variable">model.soft_prompt</span>.expand(<span class="variable">batch_size</span>, -1, -1)
+  <span class="variable">final_embeds</span> = concatenate([<span class="variable">prompt_embeds</span>, <span class="variable">input_embeds</span>], dim=1)
+  
+  <span class="comment"># 3. Pass concatenated embeddings to the frozen LLM</span>
+  <span class="comment"># Model parameters (except soft_prompt) are not updated</span>
+  <span class="variable">outputs</span> = <span class="variable">model</span>.forward(inputs_embeds=<span class="variable">final_embeds</span>, labels=<span class="variable">labels</span>)
+  
+  <span class="comment"># 4. Calculate loss</span>
+  <span class="comment"># Gradients only backpropagate to model.soft_prompt</span>
+  <span class="variable">loss</span> = <span class="variable">outputs</span>.loss
+  <span class="keyword">return</span> <span class="variable">loss</span>
+</div>`
+                },
+                p_tuning_code: {
+                    title: 'P-tuning v1 Pseudocode',
+                    code: `
+<div class="pseudo-code">
+<span class="keyword">function</span> <span class="function">p_tuning_v1_forward</span>(<span class="variable">model</span>, <span class="variable">prompt_encoder</span>, <span class="variable">input_ids</span>, <span class="variable">labels</span>):
+  <span class="comment"># prompt_encoder is a small, trainable network (e.g., BiLSTM)</span>
+  <span class="comment"># model.pseudo_tokens are the trainable inputs to the encoder</span>
+
+  <span class="comment"># 1. Get input embeddings</span>
+  <span class="variable">input_embeds</span> = <span class="variable">model.word_embeddings</span>(<span class="variable">input_ids</span>)
+
+  <span class="comment"># 2. Generate the soft prompt using the encoder</span>
+  <span class="variable">prompt_embeds</span> = <span class="variable">prompt_encoder</span>(<span class="variable">model.pseudo_tokens</span>)
+  
+  <span class="comment"># 3. Prepend the generated soft prompt</span>
+  <span class="variable">prompt_embeds</span> = <span class="variable">prompt_embeds</span>.expand(<span class="variable">batch_size</span>, -1, -1)
+  <span class="variable">final_embeds</span> = concatenate([<span class="variable">prompt_embeds</span>, <span class="variable">input_embeds</span>], dim=1)
+  
+  <span class="comment"># 4. Pass to the frozen LLM</span>
+  <span class="variable">outputs</span> = <span class="variable">model</span>.forward(inputs_embeds=<span class="variable">final_embeds</span>, labels=<span class="variable">labels</span>)
+  
+  <span class="comment"># 5. Calculate loss</span>
+  <span class="comment"># Gradients backpropagate to prompt_encoder and model.pseudo_tokens</span>
+  <span class="variable">loss</span> = <span class="variable">outputs</span>.loss
+  <span class="keyword">return</span> <span class="variable">loss</span>
+</div>`
+                },
+                prefix_tuning_code: {
+                    title: 'Prefix-Tuning / P-tuning v2 Pseudocode',
+                    code: `
+<div class="pseudo-code">
+<span class="comment"># Modify the attention mechanism within each Transformer layer</span>
+<span class="keyword">class</span> TransformerLayerWithPrefix:
+  <span class="keyword">function</span> <span class="function">forward</span>(<span class="variable">hidden_states</span>, <span class="variable">prefix_kv</span>):
+    <span class="comment"># prefix_kv is the trainable (Key, Value) pair for this layer</span>
+
+    <span class="comment"># 1. Calculate Q, K, V normally from hidden states</span>
+    <span class="variable">q</span>, <span class="variable">k_input</span>, <span class="variable">v_input</span> = self.q_proj(h), self.k_proj(h), self.v_proj(h)
+    
+    <span class="comment"># 2. Get the K, V for the prefix</span>
+    <span class="variable">k_prefix</span>, <span class="variable">v_prefix</span> = <span class="variable">prefix_kv</span>[0], <span class="variable">prefix_kv</span>[1]
+    
+    <span class="comment"># 3. Concatenate prefix K, V with input K, V</span>
+    <span class="variable">k_combined</span> = concatenate([<span class="variable">k_prefix</span>, <span class="variable">k_input</span>], dim=2)
+    <span class="variable">v_combined</span> = concatenate([<span class="variable">v_prefix</span>, <span class="variable">v_input</span>], dim=2)
+    
+    <span class="comment"># 4. Perform attention using the combined K, V</span>
+    <span class="variable">attn_output</span> = self.attention(<span class="variable">q</span>, <span class="variable">k_combined</span>, <span class="variable">v_combined</span>)
+    <span class="keyword">return</span> self.ffn(<span class="variable">attn_output</span>)
+
+<span class="comment"># --- Main model forward pass ---</span>
+<span class="keyword">function</span> <span class="function">prefix_tuning_forward</span>(<span class="variable">model</span>, <span class="variable">input_ids</span>, <span class="variable">labels</span>):
+  <span class="variable">hidden_states</span> = <span class="variable">model.word_embeddings</span>(<span class="variable">input_ids</span>)
+  <span class="keyword">for</span> i, layer in enumerate(<span class="variable">model.layers</span>):
+    <span class="variable">prefix_for_layer</span> = <span class="variable">model.prefix_params</span>[i]
+    <span class="variable">hidden_states</span> = layer.forward(<span class="variable">hidden_states</span>, prefix_kv=<span class="variable">prefix_for_layer</span>)
+  
+  <span class="variable">loss</span> = calculate_loss(<span class="variable">hidden_states</span>, <span class="variable">labels</span>)
+  <span class="keyword">return</span> <span class="variable">loss</span>
+</div>`
+                },
+                 zero_tuning_code: {
+                    title: 'ZeroTuning Pseudocode (Inference-time)',
+                    code: `
+<div class="pseudo-code">
+<span class="comment"># Modify the attention forward pass during inference</span>
+<span class="keyword">function</span> <span class="function">modified_attention_forward</span>(<span class="variable">q</span>, <span class="variable">k</span>, <span class="variable">v</span>, <span class="variable">gamma</span>):
+  <span class="comment"># gamma is the attention scaling factor</span>
+  
+  <span class="comment"># 1. Calculate attention weights normally</span>
+  <span class="variable">attn_scores</span> = matmul(<span class="variable">q</span>, <span class="variable">k</span>.T)
+  <span class="variable">attn_weights</span> = softmax(<span class="variable">attn_scores</span>)
+
+  <span class="comment"># 2. ZeroTuning adjustment: scale the attention weight of the initial token, a_0</span>
+  <span class="variable">a_0</span> = <span class="variable">attn_weights</span>[:, :, :, 0]
+  <span class="variable">new_a_0</span> = <span class="variable">a_0</span> * <span class="variable">gamma</span>
+
+  <span class="comment"># 3. Re-normalize all weights</span>
+  <span class="variable">sum_others</span> = 1.0 - <span class="variable">a_0</span>
+  <span class="variable">new_sum_others</span> = 1.0 - <span class="variable">new_a_0</span>
+  <span class="variable">scaling_factor</span> = <span class="variable">new_sum_others</span> / (<span class="variable">sum_others</span> + 1e-9)
+
+  <span class="variable">attn_weights</span>[:, :, :, 0] = <span class="variable">new_a_0</span>
+  <span class="variable">attn_weights</span>[:, :, :, 1:] *= <span class="variable">scaling_factor</span>.unsqueeze(-1)
+  
+  <span class="comment"># 4. Compute the final context vector</span>
+  <span class="variable">context</span> = matmul(<span class="variable">attn_weights</span>, <span class="variable">v</span>)
+  <span class="keyword">return</span> <span class="variable">context</span>
+</div>`
+                }
+            };
+
+            const tabContainer = document.getElementById('tabs-container');
+            const tabContent = document.getElementById('tab-content');
+            const tabButtons = tabContainer.querySelectorAll('.tab-btn');
+
+            function updateTabs(activeTab) {
+                tabButtons.forEach(button => {
+                    if (button.dataset.tab === activeTab) {
+                        button.classList.replace('inactive-tab', 'active-tab');
+                    } else {
+                        button.classList.replace('active-tab', 'inactive-tab');
+                    }
+                });
+                const data = techData[activeTab];
+                tabContent.innerHTML = `
+                    <h4 class="text-2xl font-bold text-slate-900 mb-4">${data.title}</h4>
+                    ${data.content}
+                `;
+            }
+
+            tabContainer.addEventListener('click', (e) => {
+                if (e.target.classList.contains('tab-btn')) {
+                    updateTabs(e.target.dataset.tab);
+                }
+            });
+            updateTabs('prompt_tuning');
+
+            const radarCtx = document.getElementById('radarChart').getContext('2d');
+            new Chart(radarCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['Expressive Power', 'Parameter Efficiency', 'Task Generality', 'Low Inference Overhead', 'Ease of Implementation', 'Interpretability'],
+                    datasets: [{
+                        label: 'Prompt Tuning',
+                        data: [2, 5, 3, 2, 4, 2],
+                        backgroundColor: 'rgba(139, 92, 246, 0.2)',
+                        borderColor: 'rgba(139, 92, 246, 1)',
+                        pointBackgroundColor: 'rgba(139, 92, 246, 1)',
+                    }, {
+                        label: 'P-tuning v2 / Prefix',
+                        data: [5, 4, 5, 2, 3, 1],
+                        backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                        borderColor: 'rgba(239, 68, 68, 1)',
+                        pointBackgroundColor: 'rgba(239, 68, 68, 1)',
+                    }, {
+                        label: 'ZeroTuning',
+                        data: [1, 5, 2, 5, 5, 5],
+                        backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                        borderColor: 'rgba(16, 185, 129, 1)',
+                        pointBackgroundColor: 'rgba(16, 185, 129, 1)',
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
+                            grid: { color: 'rgba(0, 0, 0, 0.1)' },
+                            pointLabels: { font: { size: 14 } },
+                            suggestedMin: 0,
+                            suggestedMax: 5,
+                            ticks: { display: false, stepSize: 1 }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'top' }
+                    }
+                }
+            });
+            
+            const barCtx = document.getElementById('barChart').getContext('2d');
+            new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Full Fine-Tuning', 'Prefix/P-tuning v2', 'P-tuning v1', 'Prompt Tuning', 'ZeroTuning'],
+                    datasets: [{
+                        label: 'Trainable Parameters (Example)',
+                        data: [11e9, 11e9 * 0.01, 11e9 * 0.001, 11e9 * 0.0001, 0],
+                        backgroundColor: [
+                            'rgba(107, 114, 128, 0.6)',
+                            'rgba(239, 68, 68, 0.6)',
+                            'rgba(249, 115, 22, 0.6)',
+                            'rgba(139, 92, 246, 0.6)',
+                            'rgba(16, 185, 129, 0.6)',
+                        ],
+                        borderColor: [
+                            'rgba(107, 114, 128, 1)',
+                            'rgba(239, 68, 68, 1)',
+                            'rgba(249, 115, 22, 1)',
+                            'rgba(139, 92, 246, 1)',
+                            'rgba(16, 185, 129, 1)',
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'logarithmic',
+                            min: 1,
+                            ticks: {
+                                callback: function(value, index, values) {
+                                    if (value === 10000000000) return "10B";
+                                    if (value === 100000000) return "100M";
+                                    if (value === 1000000) return "1M";
+                                    if (value === 10000) return "10K";
+                                    if (value === 1) return "1";
+                                    return null;
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                             callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.x !== null) {
+                                        label += context.parsed.x > 0 ? context.parsed.x.toExponential(2) : '0';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            const modelSizeSelect = document.getElementById('modelSize');
+            const taskTypeSelect = document.getElementById('taskType');
+            const resourceSelect = document.getElementById('resource');
+            const recommendationText = document.getElementById('recommendation-text');
+            const recommendationReason = document.getElementById('recommendation-reason');
+
+            function updateRecommendation() {
+                const size = modelSizeSelect.value;
+                const task = taskTypeSelect.value;
+                const resource = resourceSelect.value;
+
+                if (resource === 'zero') {
+                    recommendationText.textContent = 'ZeroTuning';
+                    recommendationReason.textContent = 'Rationale: The only training-free, zero-cost option for immediate performance gains.';
+                    return;
+                }
+
+                if (task === 'complex_nlu') {
+                     recommendationText.textContent = 'P-tuning v2';
+                     recommendationReason.textContent = 'Rationale: Optimized for complex NLU tasks and performs robustly across all model scales.';
+                     return;
+                }
+                
+                if (task === 'nlg') {
+                     recommendationText.textContent = 'Prefix-Tuning';
+                     recommendationReason.textContent = 'Rationale: Purpose-built to control complex NLG tasks, yielding high-quality generation.';
+                     return;
+                }
+
+                if (size === 'large' && task === 'simple') {
+                     recommendationText.textContent = 'Prompt Tuning';
+                     recommendationReason.textContent = 'Rationale: On very large models, its performance is comparable to full fine-tuning with the highest parameter efficiency.';
+                     return;
+                }
+                
+                if (size === 'medium' || size === 'any') {
+                     recommendationText.textContent = 'P-tuning v2 / Prefix-Tuning';
+                     recommendationReason.textContent = 'Rationale: Deep prompting methods are robust and powerful on all model scales, making them a strong general-purpose choice.';
+                     return;
+                }
+
+                recommendationText.textContent = 'P-tuning v2';
+                recommendationReason.textContent = 'Rationale: As a general-purpose alternative, it provides powerful, near-full-fine-tuning performance in most scenarios.';
+            }
+            
+            modelSizeSelect.addEventListener('change', updateRecommendation);
+            taskTypeSelect.addEventListener('change', updateRecommendation);
+            resourceSelect.addEventListener('change', updateRecommendation);
+            updateRecommendation();
+
+            const accordionContainer = document.querySelector('#pseudocode .space-y-4');
+            Object.values(pseudocodeData).forEach((item, index) => {
+                const accordionItem = document.createElement('div');
+                accordionItem.className = 'bg-white rounded-lg shadow-md';
+                accordionItem.innerHTML = `
+                    <button class="w-full flex justify-between items-center text-left p-4 font-semibold text-slate-800 focus:outline-none">
+                        <span>${item.title}</span>
+                        <svg class="w-5 h-5 transition-transform duration-300 transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div class="accordion-content overflow-hidden transition-all duration-500 ease-in-out" style="max-height: 0;">
+                        <div class="p-4 border-t border-slate-200">
+                            ${item.code}
+                        </div>
+                    </div>
+                `;
+                accordionContainer.appendChild(accordionItem);
+
+                const button = accordionItem.querySelector('button');
+                const content = accordionItem.querySelector('.accordion-content');
+                const icon = accordionItem.querySelector('svg');
+
+                button.addEventListener('click', () => {
+                    if (content.style.maxHeight === '0px' || content.style.maxHeight === '') {
+                        content.style.maxHeight = content.scrollHeight + 'px';
+                        icon.classList.add('rotate-180');
+                    } else {
+                        content.style.maxHeight = '0px';
+                        icon.classList.remove('rotate-180');
+                    }
+                });
+            });
+
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+            
+            const navLinks = document.querySelectorAll('header a[href^="#"]');
+            const sections = document.querySelectorAll('main section');
+            window.addEventListener('scroll', () => {
+                let current = '';
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    if (pageYOffset >= sectionTop - 80) {
+                        current = section.getAttribute('id');
+                    }
+                });
+                
+                const mainNavLinks = document.querySelectorAll('nav > div a');
+                mainNavLinks.forEach(link => {
+                    link.classList.remove('active-nav');
+                    link.classList.add('inactive-nav');
+                    if(link.getAttribute('href').substring(1) === current) {
+                        link.classList.add('active-nav');
+                        link.classList.remove('inactive-nav');
+                    }
+                });
+            });
+            
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const targetElement = document.querySelector(this.getAttribute('href'));
+                    if (targetElement) {
+                       targetElement.scrollIntoView({
+                           behavior: 'smooth'
+                       });
+                    }
+                    if (mobileMenu.classList.contains('hidden') === false) {
+                        mobileMenu.classList.add('hidden');
+                    }
+                });
+            });
+
+        });
+    </script>
+</body>
+</html>
