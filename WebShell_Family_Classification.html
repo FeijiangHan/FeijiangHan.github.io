@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+
+<html lang="en" class="scroll-smooth">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Beyond Detection: A Study on Webshell Family Classification</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+
+        html {
+
+            /* 为固定的导航栏添加滚动内边距，防止锚点被遮挡 */
+
+            scroll-padding-top: 100px; 
+
+        }
+
+        body {
+
+            font-family: 'Inter', sans-serif;
+
+            /* 增加行高以提高可读性 */
+
+            line-height: 1.7; 
+
+        }
+
+        .section-title {
+
+            /* 调整标题样式，使其更醒目 */
+
+            @apply text-3xl md:text-4xl font-extrabold text-slate-900 mb-4;
+
+        }
+
+        .section-subtitle {
+
+            /* 调整副标题样式，增加与正文的区分度 */
+
+            @apply text-lg md:text-xl text-slate-600 mb-12 max-w-3xl mx-auto;
+
+        }
+
+        .card {
+
+            /* 优化卡片样式，增加内边距和悬停效果 */
+
+            @apply bg-white rounded-xl shadow-md p-8 hover:shadow-xl hover:-translate-y-1 transition-all duration-300;
+
+        }
+
+        .insight-card {
+
+            /* 优化信息卡片样式 */
+
+            @apply bg-slate-50/70 border border-slate-200 rounded-xl p-8;
+
+        }
+
+        .highlight {
+
+            /* 优化高亮文本样式 */
+
+            @apply text-indigo-600 font-bold;
+
+        }
+
+        /* 为页面滚动添加淡入动画效果 */
+
+        .fade-in-section {
+
+            opacity: 0;
+
+            transform: translateY(20px);
+
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+
+        }
+
+        .fade-in-section.is-visible {
+
+            opacity: 1;
+
+            transform: translateY(0);
+
+        }
+
+    </style>
+
+</head>
+
+<body class="bg-slate-50 text-slate-700">
+
+
+
+    <!-- Header & Navigation -->
+
+    <header class="bg-white/90 backdrop-blur-lg sticky top-0 z-50 shadow-sm">
+
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+
+            <div class="text-xl font-bold text-slate-800">
+
+                Webshell Family Classification
+
+            </div>
+
+            <div class="hidden md:flex items-center space-x-6">
+
+                <a href="#problem" class="text-slate-600 hover:text-indigo-600 transition">The Problem</a>
+
+                <a href="#approach" class="text-slate-600 hover:text-indigo-600 transition">Our Approach</a>
+
+                <a href="#findings" class="text-slate-600 hover:text-indigo-600 transition">Key Findings</a>
+
+                <a href="#guidance" class="text-slate-600 hover:text-indigo-600 transition">Guidance</a>
+
+                <a href="#conclusion" class="text-slate-600 hover:text-indigo-600 transition">Conclusion</a>
+
+            </div>
+
+        </nav>
+
+    </header>
+
+
+
+    <!-- Hero Section -->
+
+    <main class="container mx-auto px-6 py-20 md:py-24 text-center">
+
+        <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 leading-tight">
+
+            Beyond Detection: A New Frontier in Web Security
+
+        </h1>
+
+        <p class="mt-4 text-lg text-slate-600 max-w-3xl mx-auto">
+
+            A comprehensive benchmark and study on representation learning for fine-grained Webshell family classification.
+
+        </p>
+
+        <p class="mt-2 text-md font-semibold text-slate-800">
+
+            Feijiang Han, University of Pennsylvania
+
+        </p>
+
+    </main>
+
+
+
+    <!-- The Problem Section -->
+
+    <section id="problem" class="py-24 bg-white fade-in-section">
+
+        <div class="container mx-auto px-6 text-center">
+
+            <h2 class="section-title">From Passive Detection to Proactive Defense</h2>
+
+            <p class="section-subtitle">
+
+                For years, cybersecurity has focused on detecting Webshells—a critical first step. But just knowing a server is compromised isn't enough. To mount a truly effective defense, we need to understand the attacker's identity and intent.
+
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto text-left">
+
+                <div class="card">
+
+                    <h3 class="text-xl font-semibold text-slate-800 mb-3">The Limits of Binary Detection</h3>
+
+                    <p>Standard detection simply answers "yes" or "no" to whether a file is malicious. This approach offers limited intelligence for security operations, leaving teams in the dark about the nature of the threat. It's like a smoke alarm that tells you there's a fire, but not where it is or how it started.</p>
+
+                </div>
+
+                <div class="card">
+
+                    <h3 class="text-xl font-semibold text-slate-800 mb-3">The Need for Family Classification</h3>
+
+                    <p>This research moves beyond detection to <span class="highlight">family classification</span>: identifying a Webshell's specific lineage. Automating this task unlocks deep threat intelligence, helping security teams attribute attacks, anticipate an adversary's next moves, and deploy a faster, more targeted response before significant damage occurs.</p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- Our Approach Section -->
+
+    <section id="approach" class="py-24 fade-in-section">
+
+        <div class="container mx-auto px-6 text-center">
+
+            <h2 class="section-title">A Framework for Understanding Malware Behavior</h2>
+
+            <p class="section-subtitle">
+
+                To classify Webshell families, we developed a systematic framework that captures their core behavior. This process turns raw, obfuscated code into structured, meaningful representations that machine learning models can analyze.
+
+            </p>
+
+            <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto text-left">
+
+                <!-- Step 1 -->
+
+                <div class="card">
+
+                    <div class="flex items-center mb-4">
+
+                        <div class="bg-indigo-100 text-indigo-600 rounded-full h-10 w-10 flex items-center justify-center font-bold text-lg flex-shrink-0">1</div>
+
+                        <h3 class="ml-4 text-xl font-semibold text-slate-800">Capture Dynamic Behavior</h3>
+
+                    </div>
+
+                    <p>We execute suspicious files in a secure sandbox to record their <span class="highlight">dynamic function call traces</span>. This captures the Webshell's actual runtime behavior, bypassing common evasion techniques like encryption and obfuscation.</p>
+
+                </div>
+
+                <!-- Step 2 -->
+
+                <div class="card">
+
+                    <div class="flex items-center mb-4">
+
+                        <div class="bg-indigo-100 text-indigo-600 rounded-full h-10 w-10 flex items-center justify-center font-bold text-lg flex-shrink-0">2</div>
+
+                        <h3 class="ml-4 text-xl font-semibold text-slate-800">Abstract the Data</h3>
+
+                    </div>
+
+                    <p>The raw traces are abstracted into three fundamental data structures, each providing a unique view of the program's logic:</p>
+
+                    <ul class="mt-3 list-disc list-inside space-y-1">
+
+                        <li><strong>Sequences:</strong> A linear, chronological list of function calls.</li>
+
+                        <li><strong>Graphs:</strong> A network showing all "who-calls-whom" relationships.</li>
+
+                        <li><strong>Trees:</strong> A hierarchical structure preserving the exact execution path and context.</li>
+
+                    </ul>
+
+                </div>
+
+                <!-- Step 3 -->
+
+                <div class="card">
+
+                    <div class="flex items-center mb-4">
+
+                        <div class="bg-indigo-100 text-indigo-600 rounded-full h-10 w-10 flex items-center justify-center font-bold text-lg flex-shrink-0">3</div>
+
+                        <h3 class="ml-4 text-xl font-semibold text-slate-800">Learn & Benchmark</h3>
+
+                    </div>
+
+                    <p>We use a comprehensive suite of representation methods—from classic embeddings (Word2Vec) to Transformers (BERT) and Graph Neural Networks (GNNs)—to convert these structures into numerical vectors. We then benchmark their quality using standard classifiers.</p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- Key Findings Section -->
+
+    <section id="findings" class="py-24 bg-white fade-in-section">
+
+        <div class="container mx-auto px-6">
+
+            <div class="text-center">
+
+                <h2 class="section-title">Key Insights and Findings</h2>
+
+                <p class="section-subtitle">
+
+                    Our extensive experiments on four real-world datasets revealed a clear hierarchy of effectiveness. The results provide a foundational baseline for future research and practical application.
+
+                </p>
+
+            </div>
+
+            <div class="space-y-8 max-w-4xl mx-auto">
+
+                <!-- Insight 1 -->
+
+                <div class="insight-card">
+
+                    <h3 class="text-xl font-bold text-slate-800 mb-3">Insight 1: Structure Definitively Outperforms Syntax</h3>
+
+                    <p class="mb-2">The most significant finding is that <span class="highlight">structural representations (graphs and trees) decisively outperform sequential ones</span>. While sequence models like BERT are powerful, they treat code like a sentence, focusing on linear order.</p>
+
+                    <p>However, a Webshell family's true signature lies in its architectural blueprint—the complex, non-local relationships between functions. Structural models capture this topology, making them far more robust against code shuffling and obfuscation.</p>
+
+                </div>
+
+                <!-- Insight 2 -->
+
+                <div class="insight-card">
+
+                    <h3 class="text-xl font-bold text-slate-800 mb-3">Insight 2: Hierarchical Context is Crucial, Giving Trees an Edge</h3>
+
+                    <p class="mb-2">While both graphs and trees were effective, <span class="highlight">tree-based models yielded the best overall performance</span>. A graph provides an aggregate view, but a tree preserves the precise execution path and call stack.</p>
+
+                    <p>This hierarchical context is vital. For example, a malicious function like `eval()` may be used in different ways. A tree disambiguates these uses by showing their unique parent-child relationships, providing a richer, more discriminative fingerprint for classification.</p>
+
+                </div>
+
+                <!-- Insight 3 -->
+
+                <div class="insight-card">
+
+                    <h3 class="text-xl font-bold text-slate-800 mb-3">Insight 3: GNNs are the Premier Architecture for Learning Behavior</h3>
+
+                    <p class="mb-2">Among all models, <span class="highlight">Graph Neural Networks (GNNs) emerged as the most powerful and stable architecture</span>. GNNs are purpose-built to learn from relational data. Unlike classic methods that count predefined patterns, GNNs automatically learn the most important structural motifs that define a family's behavior.</p>
+
+                    <p>The Graph Attention Network (GAT) was particularly effective, as it learns to focus on the most diagnostically critical function calls within the program's structure.</p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- Practical Guidance Section -->
+
+    <section id="guidance" class="py-24 fade-in-section">
+
+        <div class="container mx-auto px-6">
+
+            <div class="text-center">
+
+                <h2 class="section-title">Practical Guidance for Implementation</h2>
+
+                <p class="section-subtitle">
+
+                    Our findings translate directly into actionable guidance for security teams and researchers building next-generation defense systems.
+
+                </p>
+
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+
+                <div class="card text-center">
+
+                    <h3 class="text-xl font-semibold text-slate-800 mb-3">Best Overall Performance</h3>
+
+                    <p>For the most consistent, top-tier results across both supervised (labeled data) and unsupervised (threat discovery) tasks, a <span class="highlight">Tree-GAT</span> model is the recommended choice.</p>
+
+                </div>
+
+                <div class="card text-center">
+
+                    <h3 class="text-xl font-semibold text-slate-800 mb-3">For Supervised Classification</h3>
+
+                    <p>When high-quality labeled data is available, GNNs are superior. <span class="highlight">GAT and GCN</span> models paired with Random Forest or SVM classifiers deliver high-precision results.</p>
+
+                </div>
+
+                <div class="card text-center">
+
+                    <h3 class="text-xl font-semibold text-slate-800 mb-3">For Unsupervised Threat Discovery</h3>
+
+                    <p>To discover new or unknown families, structural representations are critical. A <span class="highlight">Tree Kernel</span> or <span class="highlight">Tree-GAT</span> model can effectively group new malware samples, flagging emergent clusters for expert analysis.</p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- Conclusion Section -->
+
+    <section id="conclusion" class="py-24 bg-white fade-in-section">
+
+        <div class="container mx-auto px-6 text-center max-w-4xl">
+
+            <h2 class="section-title">Conclusion and Future Work</h2>
+
+            <p class="text-lg text-slate-600 mb-6">
+
+                This study establishes the first systematic benchmark for fine-grained Webshell family classification, demonstrating that the key to understanding malware lies in its structural behavior, not just its code. By proving the superiority of tree-based representations and GNN architectures, we provide a foundational roadmap for the security community to build more intelligent, proactive, and resilient defense systems.
+
+            </p>
+
+            <p class="text-lg text-slate-600">
+
+                Future work will focus on advancing these capabilities through continual learning to adapt to evolving threats and enhancing model interpretability to provide security analysts with even deeper insights.
+
+            </p>
+
+            <div class="mt-10">
+
+                <a href="https://arxiv.org/pdf/2407.08865" target="_blank" rel="noopener noreferrer" class="inline-block bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 transition-colors duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+
+                    Read the Full Paper
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- Footer -->
+
+    <footer class="bg-slate-800 text-slate-300 py-8">
+
+        <div class="container mx-auto px-6 text-center">
+
+            <p>&copy; 2025 Feijiang Han, University of Pennsylvania. All Rights Reserved.</p>
+
+            <p class="text-sm text-slate-400 mt-2">This website presents a summary of the research paper "Beyond Detection: A Comprehensive Benchmark and Study on Representation Learning for Fine-Grained Webshell Family Classification."</p>
+
+        </div>
+
+    </footer>
+
+
+
+    <script>
+
+        // 使用 Intersection Observer API 实现元素的滚动淡入效果
+
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const sections = document.querySelectorAll('.fade-in-section');
+
+
+
+            const observerOptions = {
+
+                root: null, // 使用视口作为根
+
+                rootMargin: '0px',
+
+                threshold: 0.1 // 元素可见10%时触发
+
+            };
+
+
+
+            const observer = new IntersectionObserver((entries, observer) => {
+
+                entries.forEach(entry => {
+
+                    if (entry.isIntersecting) {
+
+                        entry.target.classList.add('is-visible');
+
+                        // 触发后可以停止观察，以提高性能
+
+                        observer.unobserve(entry.target);
+
+                    }
+
+                });
+
+            }, observerOptions);
+
+
+
+            sections.forEach(section => {
+
+                observer.observe(section);
+
+            });
+
+        });
+
+    </script>
+
+
+
+</body>
+
+</html>
+
